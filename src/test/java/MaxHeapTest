@@ -1,0 +1,464 @@
+package algorithms;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Unit tests for Max-Heap.
+ * Tests all operations and edge cases.
+ */
+class MaxHeapTest {
+
+    private MaxHeap heap;
+
+    /**
+     * Runs before each test.
+     * Creates a new empty heap.
+     */
+    @BeforeEach
+    void setUp() {
+        heap = new MaxHeap();
+    }
+
+    // ===== BASIC OPERATION TESTS =====
+
+    @Test
+    @DisplayName("New heap should be empty")
+    void testNewHeapIsEmpty() {
+        assertTrue(heap.isEmpty());
+        assertEquals(0, heap.size());
+    }
+
+    @Test
+    @DisplayName("After inserting one element, size = 1")
+    void testInsertSingleElement() {
+        heap.insert(10);
+
+        assertEquals(1, heap.size());
+        assertFalse(heap.isEmpty());
+        assertEquals(10, heap.peek());
+    }
+
+    @Test
+    @DisplayName("Peek does not remove element from heap")
+    void testPeekDoesNotRemove() {
+        heap.insert(42);
+
+        assertEquals(42, heap.peek());
+        assertEquals(42, heap.peek()); // Repeated peek
+        assertEquals(1, heap.size()); // Size unchanged
+    }
+
+    @Test
+    @DisplayName("ExtractMax returns maximum element")
+    void testExtractMaxReturnsMaximum() {
+        heap.insert(10);
+        heap.insert(30);
+        heap.insert(20);
+
+        assertEquals(30, heap.extractMax());
+        assertEquals(20, heap.extractMax());
+        assertEquals(10, heap.extractMax());
+    }
+
+    @Test
+    @DisplayName("After extractMax, size decreases")
+    void testExtractMaxDecreasesSize() {
+        heap.insert(5);
+        heap.insert(15);
+
+        assertEquals(2, heap.size());
+        heap.extractMax();
+        assertEquals(1, heap.size());
+        heap.extractMax();
+        assertEquals(0, heap.size());
+    }
+
+    // ===== MAX-HEAP PROPERTY TESTS =====
+
+    @Test
+    @DisplayName("Heap maintains max-heap property during insertions")
+    void testHeapPropertyMaintained() {
+        heap.insert(10);
+        heap.insert(30);
+        heap.insert(20);
+        heap.insert(5);
+        heap.insert(50);
+        heap.insert(40);
+
+        // Maximum always at root
+        assertEquals(50, heap.peek());
+
+        // Extract elements - should come out in descending order
+        assertEquals(50, heap.extractMax());
+        assertEquals(40, heap.extractMax());
+        assertEquals(30, heap.extractMax());
+        assertEquals(20, heap.extractMax());
+        assertEquals(10, heap.extractMax());
+        assertEquals(5, heap.extractMax());
+    }
+
+    @Test
+    @DisplayName("Heap works with duplicates")
+    void testHeapWithDuplicates() {
+        heap.insert(20);
+        heap.insert(20);
+        heap.insert(20);
+
+        assertEquals(20, heap.extractMax());
+        assertEquals(20, heap.extractMax());
+        assertEquals(20, heap.extractMax());
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Heap works with negative numbers")
+    void testHeapWithNegativeNumbers() {
+        heap.insert(-10);
+        heap.insert(-5);
+        heap.insert(-20);
+        heap.insert(0);
+
+        assertEquals(0, heap.extractMax());
+        assertEquals(-5, heap.extractMax());
+        assertEquals(-10, heap.extractMax());
+        assertEquals(-20, heap.extractMax());
+    }
+
+    // ===== INCREASE-KEY TESTS =====
+
+    @Test
+    @DisplayName("IncreaseKey increases element value")
+    void testIncreaseKeyBasic() {
+        heap.insert(10);
+        heap.insert(20);
+        heap.insert(30);
+
+        // Increase element at index 2 (value 10) to 50
+        heap.increaseKey(2, 50);
+
+        // Now 50 should be the maximum
+        assertEquals(50, heap.peek());
+    }
+
+    @Test
+    @DisplayName("IncreaseKey maintains heap property")
+    void testIncreaseKeyMaintainsHeapProperty() {
+        heap.insert(5);
+        heap.insert(10);
+        heap.insert(15);
+        heap.insert(3);
+
+        // Increase 3 to 20
+        heap.increaseKey(3, 20);
+
+        // Check extraction order
+        assertEquals(20, heap.extractMax());
+        assertEquals(15, heap.extractMax());
+        assertEquals(10, heap.extractMax());
+        assertEquals(5, heap.extractMax());
+    }
+
+    @Test
+    @DisplayName("IncreaseKey throws exception if new value is smaller than current")
+    void testIncreaseKeyThrowsExceptionForSmallerValue() {
+        heap.insert(50);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            heap.increaseKey(0, 30); // Try to decrease 50 to 30
+        });
+    }
+
+    @Test
+    @DisplayName("IncreaseKey throws exception for invalid index")
+    void testIncreaseKeyThrowsExceptionForInvalidIndex() {
+        heap.insert(10);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            heap.increaseKey(5, 20); // Index 5 doesn't exist
+        });
+
+        assertThrows(IndexOutOfBoundsException.class, () -> {
+            heap.increaseKey(-1, 20); // Negative index
+        });
+    }
+
+    @Test
+    @DisplayName("IncreaseKey works when new value equals current value")
+    void testIncreaseKeyWithSameValue() {
+        heap.insert(10);
+        heap.insert(20);
+
+        // Increase to same value - should work
+        assertDoesNotThrow(() -> {
+            heap.increaseKey(0, 20);
+        });
+
+        assertEquals(20, heap.peek());
+    }
+
+    // ===== EDGE CASE TESTS =====
+
+    @Test
+    @DisplayName("Peek on empty heap throws exception")
+    void testPeekOnEmptyHeap() {
+        assertThrows(IllegalStateException.class, () -> {
+            heap.peek();
+        });
+    }
+
+    @Test
+    @DisplayName("ExtractMax on empty heap throws exception")
+    void testExtractMaxOnEmptyHeap() {
+        assertThrows(IllegalStateException.class, () -> {
+            heap.extractMax();
+        });
+    }
+
+    @Test
+    @DisplayName("Heap works with single element")
+    void testSingleElementHeap() {
+        heap.insert(42);
+
+        assertEquals(42, heap.peek());
+        assertEquals(42, heap.extractMax());
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Heap works with two elements")
+    void testTwoElementHeap() {
+        heap.insert(10);
+        heap.insert(20);
+
+        assertEquals(20, heap.extractMax());
+        assertEquals(10, heap.extractMax());
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("ExtractMax on heap with single element")
+    void testExtractMaxSingleElement() {
+        heap.insert(100);
+
+        assertEquals(100, heap.extractMax());
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Insertion in ascending order")
+    void testInsertAscendingOrder() {
+        for (int i = 1; i <= 10; i++) {
+            heap.insert(i);
+        }
+
+        // Maximum should be 10
+        assertEquals(10, heap.peek());
+
+        // Extract in descending order
+        for (int i = 10; i >= 1; i--) {
+            assertEquals(i, heap.extractMax());
+        }
+    }
+
+    @Test
+    @DisplayName("Insertion in descending order")
+    void testInsertDescendingOrder() {
+        for (int i = 10; i >= 1; i--) {
+            heap.insert(i);
+        }
+
+        // Maximum should be 10
+        assertEquals(10, heap.peek());
+
+        // Extract in descending order
+        for (int i = 10; i >= 1; i--) {
+            assertEquals(i, heap.extractMax());
+        }
+    }
+
+    @Test
+    @DisplayName("Insertion of random elements")
+    void testInsertRandomElements() {
+        int[] values = {15, 3, 25, 7, 42, 1, 99, 18};
+
+        for (int value : values) {
+            heap.insert(value);
+        }
+
+        // Extract - should come out in descending order
+        int previous = Integer.MAX_VALUE;
+        while (!heap.isEmpty()) {
+            int current = heap.extractMax();
+            assertTrue(current <= previous,
+                    "Elements should be extracted in descending order");
+            previous = current;
+        }
+    }
+
+    // ===== LARGE DATA TESTS =====
+
+    @Test
+    @DisplayName("Heap works with large number of elements")
+    void testLargeNumberOfElements() {
+        int n = 1000;
+
+        // Insert n elements
+        for (int i = 0; i < n; i++) {
+            heap.insert(i);
+        }
+
+        assertEquals(n, heap.size());
+        assertEquals(n - 1, heap.peek()); // Maximum = n-1
+
+        // Extract all elements
+        for (int i = n - 1; i >= 0; i--) {
+            assertEquals(i, heap.extractMax());
+        }
+
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("IncreaseKey on large heap")
+    void testIncreaseKeyOnLargeHeap() {
+        // Insert numbers from 0 to 99
+        for (int i = 0; i < 100; i++) {
+            heap.insert(i);
+        }
+
+        // Increase element in middle of heap to 999
+        heap.increaseKey(50, 999);
+
+        // Check that 999 became the maximum
+        assertEquals(999, heap.peek());
+        assertEquals(999, heap.extractMax());
+    }
+
+    // ===== UTILITY METHOD TESTS =====
+
+    @Test
+    @DisplayName("toArray returns all elements")
+    void testToArray() {
+        heap.insert(10);
+        heap.insert(20);
+        heap.insert(15);
+
+        int[] array = heap.toArray();
+
+        assertEquals(3, array.length);
+        assertEquals(20, array[0]); // Root should be maximum
+    }
+
+    @Test
+    @DisplayName("clear removes all elements")
+    void testClear() {
+        heap.insert(10);
+        heap.insert(20);
+        heap.insert(30);
+
+        assertFalse(heap.isEmpty());
+
+        heap.clear();
+
+        assertTrue(heap.isEmpty());
+        assertEquals(0, heap.size());
+    }
+
+    @Test
+    @DisplayName("toString returns readable string")
+    void testToString() {
+        heap.insert(10);
+        heap.insert(20);
+
+        String result = heap.toString();
+
+        assertNotNull(result);
+        assertTrue(result.contains("20"));
+        assertTrue(result.contains("10"));
+    }
+
+    // ===== COMPLEX SCENARIOS =====
+
+    @Test
+    @DisplayName("Mixed operations: insert, extract, increase")
+    void testMixedOperations() {
+        // Insert elements
+        heap.insert(5);
+        heap.insert(10);
+        heap.insert(3);
+
+        assertEquals(10, heap.peek());
+
+        // Extract maximum
+        assertEquals(10, heap.extractMax());
+
+        // Insert more
+        heap.insert(7);
+        heap.insert(12);
+
+        assertEquals(12, heap.peek());
+
+        // Increase key
+        heap.increaseKey(2, 15); // Increase 3 to 15
+
+        assertEquals(15, heap.peek());
+
+        // Extract all
+        assertEquals(15, heap.extractMax());
+        assertEquals(12, heap.extractMax());
+        assertEquals(7, heap.extractMax());
+        assertEquals(3, heap.extractMax());
+
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Heap correctly works after multiple operations")
+    void testHeapIntegrity() {
+        // Scenario: add, remove, add again
+        heap.insert(50);
+        heap.insert(30);
+        heap.insert(70);
+
+        heap.extractMax(); // Remove 70
+
+        heap.insert(60);
+        heap.insert(40);
+
+        heap.extractMax(); // Remove 60
+
+        heap.insert(80);
+
+        // Check final state
+        assertEquals(80, heap.extractMax());
+        assertEquals(50, heap.extractMax());
+        assertEquals(40, heap.extractMax());
+        assertEquals(30, heap.extractMax());
+
+        assertTrue(heap.isEmpty());
+    }
+
+    @Test
+    @DisplayName("IncreaseKey does not affect other elements")
+    void testIncreaseKeyDoesNotAffectOthers() {
+        heap.insert(10);
+        heap.insert(20);
+        heap.insert(30);
+        heap.insert(5);
+
+        int sizeBefore = heap.size();
+
+        heap.increaseKey(3, 25); // Increase 5 to 25
+
+        assertEquals(sizeBefore, heap.size()); // Size unchanged
+
+        // All elements in place, only one changed
+        assertEquals(30, heap.extractMax());
+        assertEquals(25, heap.extractMax()); // Was 5, became 25
+        assertEquals(20, heap.extractMax());
+        assertEquals(10, heap.extractMax());
+    }
+}
