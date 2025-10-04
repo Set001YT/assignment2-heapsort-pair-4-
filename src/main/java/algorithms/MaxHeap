@@ -1,0 +1,406 @@
+package algorithms;
+
+import metrics.PerformanceTracker;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Max-Heap - a data structure where each parent >= its children.
+ * The maximum element is always at the root (index 0).
+ * Index relationships:
+ * - parent(i) = (i - 1) / 2
+ * - left(i) = 2 * i + 1
+ * - right(i) = 2 * i + 2
+ */
+public class MaxHeap {
+
+    // List to store heap elements
+    private List<Integer> heap;
+
+    /**
+     * Constructor - creates an empty heap.
+     */
+
+    public MaxHeap() {
+        this.heap = new ArrayList<>();
+    }
+
+    /**
+     * Constructor with initial capacity.
+     * initialCapacity - initial array size
+     */
+
+    public MaxHeap(int initialCapacity) {
+        this.heap = new ArrayList<>(initialCapacity);
+    }
+
+    /**
+     * Returns the size of the heap (number of elements).
+     * @return number of elements in the heap
+     */
+    public int size() {
+        return heap.size();
+    }
+
+    /**
+     * Checks if the heap is empty.
+     * @return true if heap is empty, false otherwise
+     */
+    public boolean isEmpty() {
+        return heap.isEmpty();
+    }
+
+    /**
+     * Returns the parent index for element at index i.
+     * i - child element index
+     * @return parent index
+     */
+    private int getParentIndex(int i) {
+        return (i - 1) / 2;
+    }
+
+    /**
+     * Returns the left child index for element at index i.
+     * i - parent index
+     * @return left child index
+     */
+    private int getLeftChildIndex(int i) {
+        return 2 * i + 1;
+    }
+
+    /**
+     * Returns the right child index for element at index i.
+     * i - parent index
+     * @return right child index
+     */
+    private int getRightChildIndex(int i) {
+        return 2 * i + 2;
+    }
+
+    /**
+     * Checks if an element has a parent.
+     * i - element index
+     * @return true if parent exists, false otherwise
+     */
+    private boolean hasParent(int i) {
+        return i > 0;
+    }
+
+    /**
+     * Checks if an element has a left child.
+     * i - element index
+     * @return true if left child exists, false otherwise
+     */
+    private boolean hasLeftChild(int i) {
+        return getLeftChildIndex(i) < heap.size();
+    }
+
+    /**
+     * Checks if an element has a right child.
+     * i - element index
+     * @return true if right child exists, false otherwise
+     */
+    private boolean hasRightChild(int i) {
+        return getRightChildIndex(i) < heap.size();
+    }
+
+    /**
+     * Returns the parent value for element at index i.
+     * i - element index
+     * tracker - object for tracking metrics (can be null)
+     * @return parent value
+     */
+
+    private int parent(int i, PerformanceTracker tracker) {
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+        return heap.get(getParentIndex(i));
+    }
+
+    /**
+     * Returns the left child value for element at index i.
+     * i - element index
+     * tracker - object for tracking metrics (can be null)
+     * @return left child value
+     */
+    private int leftChild(int i, PerformanceTracker tracker) {
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+        return heap.get(getLeftChildIndex(i));
+    }
+
+    /**
+     * Returns the right child value for element at index i.
+     * i - element index
+     * tracker - object for tracking metrics (can be null)
+     * @return right child value
+     */
+    private int rightChild(int i, PerformanceTracker tracker) {
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+        return heap.get(getRightChildIndex(i));
+    }
+
+    /**
+     * Swaps two elements in the heap.
+     * i  - first element index
+     * j  - second element index
+     * tracker - object for tracking metrics (can be null)
+     */
+    private void swap(int i, int j, PerformanceTracker tracker) {
+        if (tracker != null) {
+            tracker.recordSwap();
+            tracker.recordArrayAccess(); // Two access operations during swap
+            tracker.recordArrayAccess();
+        }
+
+        int temp = heap.get(i);
+        heap.set(i, heap.get(j));
+        heap.set(j, temp);
+    }
+
+    /**
+     * Inserts a new element into the heap.
+     * Steps:
+     * 1. Add element to the end of array
+     * 2. "Bubble up" (heapify-up) until heap property is restored
+     *
+     * Complexity: O(log n)
+     *
+     * value - value to insert
+     */
+    public void insert(int value) {
+        insert(value, null);
+    }
+
+    /**
+     * Inserts a new element into the heap with metrics tracking.
+     * value - value to insert
+     * tracker -  object for tracking metrics
+     */
+    public void insert(int value, PerformanceTracker tracker) {
+        // Add element to the end
+        heap.add(value);
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+
+        // "Bubble up" the element to its correct position
+        heapifyUp(heap.size() - 1, tracker);
+    }
+
+    /**
+     * "Bubbles up" an element up the heap until the heap property is restored.
+     * Condition: element must be <= parent (for Max-Heap).
+     *
+     * index - index of element to bubble up
+     * tracker - object for tracking metrics (can be null)
+     */
+    private void heapifyUp(int index, PerformanceTracker tracker) {
+        // While element has a parent AND element > parent
+        while (hasParent(index)) {
+            int parentIndex = getParentIndex(index);
+
+            if (tracker != null) {
+                tracker.recordComparison();
+                tracker.recordArrayAccess(); // Reading current element
+            }
+
+            // If element > parent, swap them
+            if (heap.get(index) > parent(index, tracker)) {
+                swap(index, parentIndex, tracker);
+                index = parentIndex; // Move up
+            } else {
+                break; // Heap property restored
+            }
+        }
+    }
+
+    /**
+     * Returns the maximum element (heap root) without removing it.
+     * Complexity: O(1)
+     *
+     * @return maximum element
+     * @throws IllegalStateException if heap is empty
+     */
+    public int peek() {
+        if (isEmpty()) {
+            throw new IllegalStateException("Heap is empty");
+        }
+        return heap.get(0);
+    }
+
+    /**
+     * Extracts and removes the maximum element from the heap.
+     * Steps:
+     * 1. Save the root (maximum)
+     * 2. Move the last element to root position
+     * 3. Remove the last element
+     * 4. "Bubble down" the new root (heapify-down)
+     *
+     * Complexity: O(log n)
+     *
+     * @return maximum element
+     * @throws IllegalStateException if heap is empty
+     */
+    public int extractMax() {
+        return extractMax(null);
+    }
+
+    /**
+     * Extracts and removes the maximum element with metrics tracking.
+     * tracker - object for tracking metrics
+     * @return maximum element
+     */
+    public int extractMax(PerformanceTracker tracker) {
+        if (isEmpty()) {
+            throw new IllegalStateException("Heap is empty");
+        }
+
+        // Save the maximum (root)
+        int max = heap.get(0);
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+
+        // Move the last element to root position
+        int lastElement = heap.get(heap.size() - 1);
+        heap.set(0, lastElement);
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+            tracker.recordArrayAccess();
+        }
+
+        // Remove the last element
+        heap.remove(heap.size() - 1);
+
+        // If heap is not empty, restore heap property
+        if (!isEmpty()) {
+            heapifyDown(0, tracker);
+        }
+
+        return max;
+    }
+
+    /**
+     * "Bubbles down" an element down the heap until heap property is restored.
+     * Condition: element must be >= both children (for Max-Heap).
+     *
+     * index - index of element to bubble down
+     * tracker - object for tracking metrics (can be null)
+     */
+    private void heapifyDown(int index, PerformanceTracker tracker) {
+        // While element has at least a left child
+        while (hasLeftChild(index)) {
+            // Find the index of the larger child
+            int largerChildIndex = getLeftChildIndex(index);
+
+            // If there's a right child AND it's larger than left child
+            if (hasRightChild(index)) {
+                if (tracker != null) {
+                    tracker.recordComparison();
+                }
+                if (rightChild(index, tracker) > leftChild(index, tracker)) {
+                    largerChildIndex = getRightChildIndex(index);
+                }
+            }
+
+            // If current element >= larger child, we're done
+            if (tracker != null) {
+                tracker.recordComparison();
+                tracker.recordArrayAccess();
+            }
+            if (heap.get(index) >= heap.get(largerChildIndex)) {
+                break; // Heap property restored
+            }
+
+            // Otherwise swap with the larger child
+            swap(index, largerChildIndex, tracker);
+            index = largerChildIndex; // Move down
+        }
+    }
+
+    /**
+     * Increases the value of an element at the specified index.
+     * After increasing, restores heap property (bubbles element up).
+     *
+     * Complexity: O(log n)
+     *
+     * index - element index
+     * newValue - new value (must be greater than current)
+     * @throws IllegalArgumentException if new value is less than current
+     * @throws IndexOutOfBoundsException if index is out of bounds
+     */
+    public void increaseKey(int index, int newValue) {
+        increaseKey(index, newValue, null);
+    }
+
+    /**
+     * Increases element value with metrics tracking.
+     * index - element index
+     * newValue - new value
+     * tracker - object for tracking metrics
+     */
+    public void increaseKey(int index, int newValue, PerformanceTracker tracker) {
+        // Bounds check
+        if (index < 0 || index >= heap.size()) {
+            throw new IndexOutOfBoundsException("Index out of heap bounds");
+        }
+
+        // Check that new value is greater than current
+        int currentValue = heap.get(index);
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+            tracker.recordComparison();
+        }
+
+        if (newValue < currentValue) {
+            throw new IllegalArgumentException(
+                    "New value (" + newValue + ") must be >= current value (" + currentValue + ")"
+            );
+        }
+
+        // Set new value
+        heap.set(index, newValue);
+        if (tracker != null) {
+            tracker.recordArrayAccess();
+        }
+
+        // "Bubble up" the element to its correct position
+        heapifyUp(index, tracker);
+    }
+
+    /**
+     * Returns all heap elements as an array.
+     * WARNING: this is NOT a sorted array!
+     * The order of elements corresponds to the internal heap representation.
+     *
+     * @return array of all elements
+     */
+    public int[] toArray() {
+        int[] array = new int[heap.size()];
+        for (int i = 0; i < heap.size(); i++) {
+            array[i] = heap.get(i);
+        }
+        return array;
+    }
+
+    /**
+     * Returns a string representation of the heap.
+     * @return string with heap elements
+     */
+    @Override
+    public String toString() {
+        return heap.toString();
+    }
+
+    /**
+     * Clears the heap (removes all elements).
+     */
+    public void clear() {
+        heap.clear();
+    }
+}
