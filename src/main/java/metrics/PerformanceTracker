@@ -1,0 +1,145 @@
+package metrics;
+
+import java.io.FileWriter;
+import java.io.IOException;
+
+/**
+ * Class for tracking Max-Heap operation performance.
+ * Counts the number of comparisons, swaps, and execution time.
+ */
+public class PerformanceTracker {
+
+    // Operation counters
+    private long comparisons;      // Number of element comparisons
+    private long swaps;            // Number of element swaps
+    private long arrayAccesses;    // Number of array accesses
+
+    // Time measurement
+    private long startTime;        // Operation start time (in nanoseconds)
+    private long endTime;          // Operation end time (in nanoseconds)
+
+    /**
+     * Constructor - initializes all counters to zero.
+     */
+    public PerformanceTracker() {
+        this.comparisons = 0;
+        this.swaps = 0;
+        this.arrayAccesses = 0;
+    }
+
+    /**
+     * Increments the comparison counter by 1.
+     * Called every time we compare two elements.
+     */
+    public void recordComparison() {
+        comparisons++;
+    }
+
+    /**
+     * Increments the swap counter by 1.
+     * Called every time we swap two elements.
+     */
+    public void recordSwap() {
+        swaps++;
+    }
+
+    /**
+     * Increments the array access counter by 1.
+     * Called every time we read from or write to the array.
+     */
+    public void recordArrayAccess() {
+        arrayAccesses++;
+    }
+
+    /**
+     * Starts the timer - saves the current time in nanoseconds.
+     */
+    public void startTimer() {
+        startTime = System.nanoTime();
+    }
+
+    /**
+     * Stops the timer - saves the end time.
+     */
+    public void stopTimer() {
+        endTime = System.nanoTime();
+    }
+
+    /**
+     * Returns the execution time in nanoseconds.
+     * @return time = endTime - startTime
+     */
+    public long getElapsedTimeNanos() {
+        return endTime - startTime;
+    }
+
+    /**
+     * Returns the execution time in milliseconds.
+     * @return time in ms (1 ms = 1,000,000 nanoseconds)
+     */
+    public long getElapsedTimeMillis() {
+        return (endTime - startTime) / 1_000_000;
+    }
+
+    /**
+     * Resets all counters and timers to zero.
+     * Used to start a new measurement.
+     */
+    public void reset() {
+        comparisons = 0;
+        swaps = 0;
+        arrayAccesses = 0;
+        startTime = 0;
+        endTime = 0;
+    }
+
+    /**
+     * Saves measurement results to a CSV file.
+     * Format: inputSize, timeMs, comparisons, swaps, arrayAccesses
+     *
+     * filename - name of the file to save to (CSV)
+     * inputSize - size of input data
+     */
+    public void exportToCSV(String filename, int inputSize) {
+        try (FileWriter writer = new FileWriter(filename, true)) {
+            // Format line: size, time, comparisons, swaps, accesses
+            String line = String.format("%d,%d,%d,%d,%d%n",
+                    inputSize,
+                    getElapsedTimeMillis(),
+                    comparisons,
+                    swaps,
+                    arrayAccesses);
+
+            writer.write(line);
+
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Prints statistics to console in a readable format.
+     */
+    public void printStats() {
+        System.out.println("=== Performance Statistics ===");
+        System.out.println("Execution time: " + getElapsedTimeMillis() + " ms");
+        System.out.println("Comparisons: " + comparisons);
+        System.out.println("Swaps: " + swaps);
+        System.out.println("Array accesses: " + arrayAccesses);
+        System.out.println("==============================");
+    }
+
+    // Getters for accessing counters
+
+    public long getComparisons() {
+        return comparisons;
+    }
+
+    public long getSwaps() {
+        return swaps;
+    }
+
+    public long getArrayAccesses() {
+        return arrayAccesses;
+    }
+}
