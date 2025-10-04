@@ -1,0 +1,294 @@
+package cli;
+
+import algorithms.MaxHeap;
+import metrics.PerformanceTracker;
+import java.util.Random;
+
+/**
+ * CLI program for running Max-Heap benchmarks.
+ * Tests performance on different input data sizes.
+ */
+public class BenchmarkRunner {
+
+    private static final Random random = new Random(42); // Fixed seed for reproducibility
+
+    /**
+     * Main method - runs all benchmarks.
+     */
+    public static void main(String[] args) {
+        System.out.println("========================================");
+        System.out.println("   Max-Heap Performance Benchmark");
+        System.out.println("========================================\n");
+
+        // Test sizes
+        int[] sizes = {100, 1000, 10000, 100000};
+
+        // Create CSV files with headers
+        initializeCSVFiles();
+
+        // Run benchmarks for each size
+        for (int size : sizes) {
+            System.out.println("--- Input data size: " + size + " ---\n");
+
+            // Test 1: Insert operations
+            benchmarkInsert(size);
+
+            // Test 2: Extract-Max operations
+            benchmarkExtractMax(size);
+
+            // Test 3: Increase-Key operations
+            benchmarkIncreaseKey(size);
+
+            // Test 4: Mixed operations
+            benchmarkMixedOperations(size);
+
+            System.out.println();
+        }
+
+        System.out.println("========================================");
+        System.out.println("Benchmarks completed!");
+        System.out.println("Results saved to data/benchmarks/");
+        System.out.println("========================================");
+    }
+
+    /**
+     * Creates CSV files and writes headers.
+     */
+    private static void initializeCSVFiles() {
+        // Here you can add directory and file creation
+        System.out.println("Initializing CSV files...\n");
+    }
+
+    /**
+     * Benchmark for Insert operation.
+     * Measures time to insert n elements.
+     *
+     * size - number of elements to insert
+     */
+    private static void benchmarkInsert(int size) {
+        System.out.println("Test INSERT:");
+
+        MaxHeap heap = new MaxHeap(size);
+        PerformanceTracker tracker = new PerformanceTracker();
+
+        // Generate random numbers
+        int[] values = generateRandomArray(size);
+
+        // Start timer
+        tracker.startTimer();
+
+        // Insert all elements
+        for (int value : values) {
+            heap.insert(value, tracker);
+        }
+
+        // Stop timer
+        tracker.stopTimer();
+
+        // Print results
+        System.out.printf("  Time: %d ms\n", tracker.getElapsedTimeMillis());
+        System.out.printf("  Comparisons: %d\n", tracker.getComparisons());
+        System.out.printf("  Swaps: %d\n", tracker.getSwaps());
+        System.out.printf("  Average time per operation: %.3f μs\n",
+                tracker.getElapsedTimeNanos() / (double) size / 1000.0);
+        System.out.println();
+
+        // Save to CSV
+        tracker.exportToCSV("insert-results.csv", size);
+    }
+
+    /**
+     * Benchmark for Extract-Max operation.
+     * Measures time to extract all elements from the heap.
+     *
+     * size - number of elements in heap
+     */
+    private static void benchmarkExtractMax(int size) {
+        System.out.println("Test EXTRACT-MAX:");
+
+        // First fill the heap
+        MaxHeap heap = new MaxHeap(size);
+        int[] values = generateRandomArray(size);
+        for (int value : values) {
+            heap.insert(value);
+        }
+
+        PerformanceTracker tracker = new PerformanceTracker();
+
+        // Start timer
+        tracker.startTimer();
+
+        // Extract all elements
+        while (!heap.isEmpty()) {
+            heap.extractMax(tracker);
+        }
+
+        // Stop timer
+        tracker.stopTimer();
+
+        // Print results
+        System.out.printf("  Time: %d ms\n", tracker.getElapsedTimeMillis());
+        System.out.printf("  Comparisons: %d\n", tracker.getComparisons());
+        System.out.printf("  Swaps: %d\n", tracker.getSwaps());
+        System.out.printf("  Average time per operation: %.3f μs\n",
+                tracker.getElapsedTimeNanos() / (double) size / 1000.0);
+        System.out.println();
+
+        // Save to CSV
+        tracker.exportToCSV("extract-max-results.csv", size);
+    }
+
+    /**
+     * Benchmark for Increase-Key operation.
+     * Measures time to increase keys for random elements.
+     *
+     * size - number of elements in heap
+     */
+    private static void benchmarkIncreaseKey(int size) {
+        System.out.println("Test INCREASE-KEY:");
+
+        // Fill heap
+        MaxHeap heap = new MaxHeap(size);
+        int[] values = generateRandomArray(size);
+        for (int value : values) {
+            heap.insert(value);
+        }
+
+        PerformanceTracker tracker = new PerformanceTracker();
+
+        // Number of increase-key operations (10% of size)
+        int numOperations = Math.max(1, size / 10);
+
+        // Start timer
+        tracker.startTimer();
+
+        // Perform increase-key operations
+        for (int i = 0; i < numOperations; i++) {
+            int randomIndex = random.nextInt(heap.size());
+            int newValue = random.nextInt(1000000); // Large value
+
+            try {
+                heap.increaseKey(randomIndex, newValue, tracker);
+            } catch (IllegalArgumentException e) {
+                // If new value is less than current, skip
+            }
+        }
+
+        // Stop timer
+        tracker.stopTimer();
+
+        // Print results
+        System.out.printf("  Operations: %d\n", numOperations);
+        System.out.printf("  Time: %d ms\n", tracker.getElapsedTimeMillis());
+        System.out.printf("  Comparisons: %d\n", tracker.getComparisons());
+        System.out.printf("  Swaps: %d\n", tracker.getSwaps());
+        System.out.printf("  Average time per operation: %.3f μs\n",
+                tracker.getElapsedTimeNanos() / (double) numOperations / 1000.0);
+        System.out.println();
+
+        // Save to CSV
+        tracker.exportToCSV("increase-key-results.csv", size);
+    }
+
+    /**
+     * Benchmark for mixed operations.
+     * Combination of insert, extract-max, and increase-key.
+     *
+     * size - base size for operations
+     */
+    private static void benchmarkMixedOperations(int size) {
+        System.out.println("Test MIXED OPERATIONS:");
+
+        MaxHeap heap = new MaxHeap();
+        PerformanceTracker tracker = new PerformanceTracker();
+
+        int numOperations = size;
+
+        // Start timer
+        tracker.startTimer();
+
+        for (int i = 0; i < numOperations; i++) {
+            int operation = random.nextInt(3); // 0, 1, or 2
+
+            switch (operation) {
+                case 0: // Insert
+                    heap.insert(random.nextInt(10000), tracker);
+                    break;
+
+                case 1: // Extract-Max (if heap not empty)
+                    if (!heap.isEmpty() && heap.size() > 10) {
+                        heap.extractMax(tracker);
+                    }
+                    break;
+
+                case 2: // Increase-Key (if heap not empty)
+                    if (!heap.isEmpty()) {
+                        int index = random.nextInt(heap.size());
+                        int newValue = random.nextInt(20000);
+                        try {
+                            heap.increaseKey(index, newValue, tracker);
+                        } catch (IllegalArgumentException e) {
+                            // Skip if value is smaller
+                        }
+                    }
+                    break;
+            }
+        }
+
+        // Stop timer
+        tracker.stopTimer();
+
+        // Print results
+        System.out.printf("  Operations: %d\n", numOperations);
+        System.out.printf("  Time: %d ms\n", tracker.getElapsedTimeMillis());
+        System.out.printf("  Comparisons: %d\n", tracker.getComparisons());
+        System.out.printf("  Swaps: %d\n", tracker.getSwaps());
+        System.out.printf("  Final heap size: %d\n", heap.size());
+        System.out.println();
+
+        // Save to CSV
+        tracker.exportToCSV("mixed-results.csv", size);
+    }
+
+    /**
+     * Generates an array of random numbers.
+     *
+     * size - array size
+     * @return array of random numbers
+     */
+    private static int[] generateRandomArray(int size) {
+        int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = random.nextInt(100000);
+        }
+        return array;
+    }
+
+    /**
+     * Generates a sorted array (ascending order).
+     *
+     * size - array size
+     * @return sorted array
+     */
+    private static int[] generateSortedArray(int size) {
+        int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = i;
+        }
+        return array;
+    }
+
+    /**
+     * Generates a reverse sorted array (descending order).
+     *
+     * size - array size
+     * @return reverse sorted array
+     */
+    private static int[] generateReverseSortedArray(int size) {
+        int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = size - i;
+        }
+        return array;
+    }
+}
