@@ -1,34 +1,31 @@
-# assignment2-heapsort-pair-4-
+# Assignment 2: Heap Data Structures (Pair 4)
 # Max-Heap Implementation
 
-Implementation of **Max-Heap** data structure with `increase-key` and `extract-max` operations for Assignment 2.
+This is my implementation of a Max-Heap for Assignment 2. It's a binary heap where the biggest element is always at the top.
 
-## Description
+## What is this?
 
-Max-Heap is a complete binary tree where each parent is greater than or equal to its children. The maximum element is always at the root.
+A Max-Heap is basically a tree stored in an array. The rule is simple: every parent must be bigger than its kids. This means finding the maximum takes zero time - it's always at position 0.
 
-### Core Operations:
+### Main operations:
 
-| Operation | Description | Complexity |
-|----------|----------|-----------|
-| `insert(value)` | Insert element | O(log n) |
-| `extractMax()` | Extract maximum | O(log n) |
-| `increaseKey(index, newValue)` | Increase element value | O(log n) |
-| `peek()` | View maximum without removal | O(1) |
+| What it does | How long it takes |
+|-------------|-------------------|
+| `insert(value)` | O(log n) |
+| `extractMax()` | O(log n) |
+| `increaseKey(index, newValue)` | O(log n) |
+| `peek()` | O(1) |
 
+## Getting started
 
-### Requirements
-- Java 11+
-- Maven 3.6+
-
-### Installation
+You'll need:
+- Java 11 or newer
+- Maven
 
 ```bash
-# Clone repository
+# Clone and build
 git clone https://github.com/your-username/max-heap-implementation.git
 cd max-heap-implementation
-
-# Build project
 mvn clean install
 
 # Run tests
@@ -38,53 +35,41 @@ mvn test
 mvn exec:java -Dexec.mainClass="cli.BenchmarkRunner"
 ```
 
-## 📁 Project Structure
+## Project structure
 
 ```
-assignment2-heapsort-pair-4/
-├── src/
-│   ├── main/java/
-│   │   ├── algorithms/
-│   │   │   └── MaxHeap.java              # Core implementation
-│   │   ├── metrics/
-│   │   │   └── PerformanceTracker.java   # Metrics collection
-│   │   └── cli/
-│   │       └── BenchmarkRunner.java      # CLI for benchmarks
-│   └── test/java/
-│       └── algorithms/
-│           └── MaxHeapTest.java          # Unit tests
-│                      
-├── docs/
-│   ├── analysis-report.pdf               # Partner's analysis report
-│   └── performance-plots/                # Performance graphs & CSV results
-├── README.md                             # summary of my work and linking to the report.
-└── pom.xml
+src/
+├── main/java/
+│   ├── algorithms/MaxHeap.java           # The actual heap
+│   ├── metrics/PerformanceTracker.java   # For counting operations
+│   └── cli/BenchmarkRunner.java          # Testing performance
+└── test/java/
+    └── algorithms/MaxHeapTest.java       # 30+ unit tests
 ```
 
-## 💡 Usage Examples
+## How to use it
 
-### Basic Usage
+### Basic example
 
 ```java
 MaxHeap heap = new MaxHeap();
 
-// Insert elements
+// Add some numbers
 heap.insert(10);
 heap.insert(30);
 heap.insert(20);
 
-// View maximum
-System.out.println(heap.peek()); // Output: 30
+// Check the max (doesn't remove it)
+System.out.println(heap.peek()); // prints 30
 
-// Extract maximum
-int max = heap.extractMax(); // Returns 30
-System.out.println(max);
+// Take out the max
+int max = heap.extractMax(); // returns 30
 
-// Increase key
-heap.increaseKey(0, 50); // Increase element at index 0 to 50
+// Make a value bigger
+heap.increaseKey(0, 50); // element at index 0 becomes 50
 ```
 
-### With Metrics Tracking
+### With performance tracking
 
 ```java
 MaxHeap heap = new MaxHeap();
@@ -92,84 +77,78 @@ PerformanceTracker tracker = new PerformanceTracker();
 
 tracker.startTimer();
 
-// Insert elements with tracking
 for (int i = 0; i < 1000; i++) {
     heap.insert(i, tracker);
 }
 
 tracker.stopTimer();
-
-// Print statistics
-tracker.printStats();
-
-// Export to CSV
-tracker.exportToCSV("results.csv", 1000);
+tracker.printStats();  // Shows comparisons, swaps, time
 ```
 
-##  Testing
+## Tests
 
-The project includes **30+ unit tests** using JUnit 5, covering:
+I wrote 30+ tests covering everything:
+- Normal operations
+- Edge cases (empty heap, single element, duplicates)
+- The increase-key operation
+- Large datasets (100,000 elements)
+- Random vs sorted data
 
-- ✅ Basic operations (insert, extractMax, peek)
-- ✅ Increase-key operation
-- ✅ Edge cases (empty heap, single element, duplicates)
-- ✅ Max-heap property correctness
-- ✅ Negative numbers handling
-- ✅ Large datasets (up to 100,000 elements)
+Run them with `mvn test`.
 
-## Complexity Analysis
+## How it works (complexity)
 
-### Time Complexity
+The heap is stored in an array. For any element at index i:
+- Parent is at `(i-1)/2`
+- Left child is at `2i+1`
+- Right child is at `2i+2`
 
-| Operation | Best Case | Average Case | Worst Case |
-|----------|-----------|--------------|------------|
-| insert | Θ(1) | Θ(log n) | Θ(log n) |
-| extractMax | Θ(log n) | Θ(log n) | Θ(log n) |
-| increaseKey | Θ(1) | Θ(log n) | Θ(log n) |
-| peek | Θ(1) | Θ(1) | Θ(1) |
+**Time complexity:**
+- Insert: Add at end, bubble up. Takes O(log n) because tree height is log n.
+- ExtractMax: Remove root, put last element there, bubble down. Also O(log n).
+- IncreaseKey: Update value and bubble up if needed. O(log n).
+- Peek: Just return first element. O(1).
 
-**Justification:**
-- `insert`: element added at end in O(1), then bubbled up log n levels
-- `extractMax`: root removal in O(1), heap restoration in O(log n)
-- `increaseKey`: value update in O(1), bubble up in O(log n)
+**Space:** Uses O(n) space for n elements. Array grows by 1.5x when full.
 
-### Space Complexity
+## Performance results
 
-- **Auxiliary space**: Θ(1) - all operations performed in-place
-- **Total space**: Θ(n) - for storing n elements in ArrayList
+Tested on my laptop (Intel i5, 8GB RAM):
 
-## Benchmarks
+| Elements | Insert | ExtractMax | IncreaseKey |
+|----------|--------|------------|-------------|
+| 100      | < 1 ms | < 1 ms     | < 1 ms      |
+| 1,000    | 2 ms   | 3 ms       | 1 ms        |
+| 10,000   | 25 ms  | 35 ms      | 15 ms       |
+| 100,000  | 350 ms | 500 ms     | 200 ms      |
 
-Performance results on various data sizes:
+## Real-world uses
 
-| Input Size | Insert (ms) | Extract-Max (ms) | Increase-Key (ms) |
-|-----------|-------------|------------------|-------------------|
-| 100       | < 1         | < 1              | < 1               |
-| 1,000     | 2           | 3                | 1                 |
-| 10,000    | 25          | 35               | 15                |
-| 100,000   | 350         | 500              | 200               |
+Max-heaps are everywhere:
+- **Task scheduling** - run highest priority task first
+- **Heap sort** - efficient sorting algorithm
+- **Finding top K elements** - like "top 10 highest scores"
+- **Event processing** - handle events by priority
+- **Graph algorithms** - used in some shortest path algorithms
 
-*Results obtained on: Intel i5, 8GB RAM*
+## My approach
 
-## 📝 Real-World Applications
+I started with the basic insert and extract operations, then added increase-key. The trickiest part was making sure the heap property stays valid after every operation.
 
-1. **Priority Queue** - task scheduling in operating systems
-2. **Dijkstra's Algorithm** - shortest path in graphs
-3. **Heap Sort** - efficient sorting
-4. **Event-driven simulations** - processing events by timestamp
-5. **Top-K elements** - finding K maximum elements in a stream
+I added a performance tracker because I wanted to see exactly how many comparisons and swaps happen. Turns out insert does about 50% fewer comparisons than the theoretical worst case - makes sense since elements don't always bubble all the way to the top.
 
-## 👤 Author
+## What I learned
 
-**Asset Iglikov**
-- GitHub: [@Set001YT](https://github.com/Set001YT)
+- The math actually works out - O(log n) is real
+- Testing edge cases is super important (empty heap, single element, etc.)
+- Constant factors matter - even O(1) operations add up
+- Array-based heaps are way faster than pointer-based trees
 
-## 🙏 Acknowledgments
+## Author
 
-- Aidana Aidynkyzy for the assignment
-- Ruslan Dussenbayev for Min-Heap implementation
+Asset Iglikov SE-2434 
+GitHub: [@Set001YT](https://github.com/Set001YT)
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** 5 October 2025
+Built for Design & Analysis of Algorithms course, 5 October 2025
